@@ -20,8 +20,8 @@ t0 = time.time()
 
 
 
-class DummyAgent(Agent):
-	class MyBehav(CyclicBehaviour):
+class MainAgent(Agent):
+	class PeopleCounterAgent(CyclicBehaviour):
 		async def on_start(self):
 			print("Starting behaviour . . .")
 
@@ -175,7 +175,7 @@ class DummyAgent(Agent):
 			d = [datetimee, self.empty1, self.empty, self.x]
 			export_data = zip_longest(*d, fillvalue = '')
 
-			with open('Log.csv', 'w', newline='') as myfile:
+			with open('registry.csv', 'w', newline='') as myfile:
 				wr = csv.writer(myfile, quoting=csv.QUOTE_ALL)
 				wr.writerow(("End Time", "In", "Out", "Total Inside"))
 				wr.writerows(export_data)
@@ -194,19 +194,19 @@ class DummyAgent(Agent):
 
 	async def setup(self):
 		print("Agent starting . . .")
-		self.my_behav = self.MyBehav()
-		self.add_behaviour(self.my_behav)
+		self.peoplecounter_agent = self.PeopleCounterAgent()
+		self.add_behaviour(self.peoplecounter_agent)
 
 if __name__ == "__main__":
-    dummy = DummyAgent("test@localhost", "test")
-    future = dummy.start()
-    future.result()
+	mainAgent = MainAgent("test@localhost", "test")
+	future = mainAgent.start()
+	future.result()
+	mainAgent.web.start(hostname="127.0.0.1", port="10000")
+	
+	while not mainAgent.peoplecounter_agent.is_killed():
+		try:
+			time.sleep(1)
+		except KeyboardInterrupt:
+			break
 
-
-    while not dummy.my_behav.is_killed():
-        try:
-            time.sleep(1)
-        except KeyboardInterrupt:
-            break
-
-    dummy.stop()
+	mainAgent.stop()
