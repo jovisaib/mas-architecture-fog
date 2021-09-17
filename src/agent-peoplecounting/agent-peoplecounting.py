@@ -20,8 +20,8 @@ t0 = time.time()
 
 
 
-class MainAgent(Agent):
-	class PeopleCounterAgent(CyclicBehaviour):
+class PeopleCountingAgent(Agent):
+	class PeopleCountingBehaviour(CyclicBehaviour):
 		async def on_start(self):
 			print("Starting behaviour . . .")
 
@@ -117,7 +117,6 @@ class MainAgent(Agent):
 			for (objectID, centroid) in objects.items():
 				to = self.trackableObjects.get(objectID, None)
 
-				# if there is no existing trackable object, create one
 				if to is None:
 					to = TrackableObject(objectID, centroid)
 
@@ -126,7 +125,6 @@ class MainAgent(Agent):
 					direction = centroid[1] - np.mean(y)
 					to.centroids.append(centroid)
 
-					# check to see if the object has been counted or not
 					if not to.counted:
 						if direction < 0 and centroid[1] < self.H // 2:
 							self.totalUp += 1
@@ -194,19 +192,19 @@ class MainAgent(Agent):
 
 	async def setup(self):
 		print("Agent starting . . .")
-		self.peoplecounter_agent = self.PeopleCounterAgent()
-		self.add_behaviour(self.peoplecounter_agent)
+		self.peoplecounterBeh = self.PeopleCountingBehaviour()
+		self.add_behaviour(self.peoplecounterBeh)
 
 if __name__ == "__main__":
-	mainAgent = MainAgent("test@localhost", "test")
-	future = mainAgent.start()
+	peopleCountingAgent = PeopleCountingAgent("test@localhost", "test")
+	future = peopleCountingAgent.start()
 	future.result()
-	mainAgent.web.start(hostname="127.0.0.1", port="10000")
+	peopleCountingAgent.web.start(hostname="127.0.0.1", port="10000")
 	
-	while not mainAgent.peoplecounter_agent.is_killed():
+	while not peopleCountingAgent.peoplecounterBeh.is_killed():
 		try:
 			time.sleep(1)
 		except KeyboardInterrupt:
 			break
 
-	mainAgent.stop()
+	peopleCountingAgent.stop()
