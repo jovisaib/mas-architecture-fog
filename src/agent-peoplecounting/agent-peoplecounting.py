@@ -3,7 +3,7 @@ from libs.trackableobject import TrackableObject
 from imutils.video import VideoStream
 from imutils.video import FPS
 from libs import config
-import time, csv
+import time, csv, json
 import numpy as np
 import imutils
 import time, dlib, cv2, datetime
@@ -58,6 +58,15 @@ class PeopleCountingAgent(Agent):
 
 
 		async def run(self):
+			msg = await self.receive(timeout=30)
+			if msg:
+				resource = json.loads(msg.body)
+				self.vs = VideoStream(resource["ip"]).start()
+				print("Message received with content: {}".format(msg.body))
+			else:
+				print("Did not received any resource after 30 seconds")
+
+
 			self.frame = self.vs.read()
 			self.frame = imutils.resize(self.frame, width = 500)
 			rgb = cv2.cvtColor(self.frame, cv2.COLOR_BGR2RGB)
@@ -196,7 +205,7 @@ class PeopleCountingAgent(Agent):
 		self.add_behaviour(self.peoplecounterBeh)
 
 if __name__ == "__main__":
-	peopleCountingAgent = PeopleCountingAgent("test@localhost", "test")
+	peopleCountingAgent = PeopleCountingAgent("peoplecounting@localhost", "peoplecounting")
 	future = peopleCountingAgent.start()
 	future.result()
 	peopleCountingAgent.web.start(hostname="127.0.0.1", port="10000")
